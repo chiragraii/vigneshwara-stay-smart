@@ -46,7 +46,7 @@ function AdminPage() {
 
   const updateBooking = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
-      const { error } = await supabase.from("bookings").update(patch).eq("id", id);
+      const { error } = await supabase.from("bookings").update(patch as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-bookings"] }); toast.success("Updated"); },
@@ -55,7 +55,7 @@ function AdminPage() {
 
   const updateRoom = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("rooms").update({ status }).eq("id", id);
+      const { error } = await supabase.from("rooms").update({ status: status as "available" | "occupied" | "maintenance" }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-rooms"] }); toast.success("Room updated"); },
