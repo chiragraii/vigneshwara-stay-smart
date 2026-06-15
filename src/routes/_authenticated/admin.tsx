@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarCheck, LogIn, LogOut as LogOutIcon, Bed, Users, IndianRupee } from "lucide-react";
+import { claimFirstAdmin } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — Hotel Vigneshwara Lodge" }] }),
@@ -69,8 +70,15 @@ function AdminPage() {
         <main className="flex-1 container-narrow py-20 max-w-lg">
           <h1 className="font-display text-4xl">Staff access only</h1>
           <p className="text-muted-foreground mt-3">
-            Your account doesn't have admin or staff permission. Ask an existing admin to grant your account a role from the admin dashboard.
+            Your account doesn't have admin or staff permission yet.
           </p>
+          <p className="text-sm text-muted-foreground mt-4">
+            If you're setting this up for the first time and no admin exists yet, you can claim the first admin role for your account.
+          </p>
+          <Button className="mt-4" onClick={async () => {
+            try { await claimFirstAdmin(); toast.success("You're now an admin. Refreshing…"); setTimeout(()=>location.reload(), 600); }
+            catch (e) { toast.error((e as Error).message); }
+          }}>Claim first admin</Button>
           <Link to="/" className="text-sm text-gold mt-6 inline-block">← Back home</Link>
         </main>
       </div>
