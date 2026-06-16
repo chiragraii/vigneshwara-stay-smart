@@ -1,9 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { Menu } from "lucide-react";
+import { useAuth, logout } from "@/lib/auth";
+import { Menu, User, LogOut } from "lucide-react";
 import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function SiteHeader() {
   const { user, isStaff } = useAuth();
@@ -17,9 +24,8 @@ export function SiteHeader() {
     { to: "/contact", label: "Contact" },
   ] as const;
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    navigate({ to: "/" });
+  function signOut() {
+    logout();
   }
 
   return (
@@ -46,7 +52,34 @@ export function SiteHeader() {
             <>
               <Link to="/my-bookings"><Button variant="ghost" size="sm">My Bookings</Button></Link>
               {isStaff && <Link to="/admin"><Button variant="ghost" size="sm">Admin</Button></Link>}
-              <Button size="sm" variant="outline" onClick={signOut}>Sign out</Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden lg:inline">{user.full_name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{user.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-bookings" className="cursor-pointer">
+                      My Bookings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="cursor-pointer text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
@@ -69,9 +102,16 @@ export function SiteHeader() {
             ))}
             {user ? (
               <>
+                <div className="py-2 border-t border-border">
+                  <p className="text-sm font-medium">{user.full_name}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </div>
                 <Link to="/my-bookings" className="text-sm py-1" onClick={() => setOpen(false)}>My Bookings</Link>
                 {isStaff && <Link to="/admin" className="text-sm py-1" onClick={() => setOpen(false)}>Admin</Link>}
-                <Button size="sm" variant="outline" onClick={signOut}>Sign out</Button>
+                <Button size="sm" variant="outline" onClick={signOut} className="mt-2">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </Button>
               </>
             ) : (
               <>
