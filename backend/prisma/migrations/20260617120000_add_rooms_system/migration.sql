@@ -1,0 +1,3 @@
+-- Prisma migration placeholder
+-- Run via: npm run migrate:rooms (from backend/)
+-- Or apply supabase/migrations/20260617120000_add_rooms_system.sql directly

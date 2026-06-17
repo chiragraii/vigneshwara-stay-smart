@@ -4,7 +4,10 @@ import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { config } from './config/config.js';
 import authRoutes from './routes/authRoutes.js';
+import roomRoutes from './routes/rooms.js';
+import bookingRoutes from './routes/bookings.js';
 import pool from './config/database.js';
+import { requestLogger, errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -34,6 +37,9 @@ app.use('/api/', limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Request logging
+app.use(requestLogger);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -45,23 +51,14 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Route not found',
-  });
-});
+app.use(notFoundHandler);
 
 // Global error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    error: config.nodeEnv === 'development' ? err.message : 'Internal server error',
-  });
-});
+app.use(errorHandler);
 
 // Start server
 const PORT = config.port;
