@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomCategory {
+  GENERAL
+  DELUXE
+  STANDARD
+  FAMILY_SUITE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  CHECKED_IN
+  CHECKED_OUT
+}
+
+model Room {
+  id            String        @id @default(uuid())
+  name          String
+  slug          String        @unique
+  category      RoomCategory
+  description   String
+  shortDesc     String        @map("short_desc")
+  pricePerNight Decimal       @map("price_per_night") @db.Decimal(10, 2)
+  originalPrice Decimal?      @map("original_price") @db.Decimal(10, 2)
+  maxGuests     Int           @map("max_guests")
+  bedType       String        @map("bed_type")
+  bedCount      Int           @default(1) @map("bed_count")
+  roomSize      Int           @map("room_size")
+  floor         Int?
+  viewType      String?       @map("view_type")
+  isAvailable   Boolean       @default(true) @map("is_available")
+  isFeatured    Boolean       @default(false) @map("is_featured")
+  rating        Float?        @default(0)
+  reviewCount   Int           @default(0) @map("review_count")
+  images        RoomImage[]
+  amenities     RoomAmenity[]
+  bookings      Booking[]
+  reviews       Review[]
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@map("rooms")
+}
+
+model RoomImage {
+  id        String   @id @default(uuid())
+  roomId    String   @map("room_id")
+  url       String
+  altText   String?  @map("alt_text")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  order     Int      @default(0)
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("room_images")
+}
+
+model Amenity {
+  id    String        @id @default(uuid())
+  name  String        @unique
+  icon  String
+  rooms RoomAmenity[]
+
+  @@map("amenities")
+}
+
+model RoomAmenity {
+  roomId    String  @map("room_id")
+  amenityId String  @map("amenity_id")
+  room      Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  amenity   Amenity @relation(fields: [amenityId], references: [id])
+
+  @@id([roomId, amenityId])
+  @@map("room_amenities")
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  roomId      String        @map("room_id")
+  guestName   String        @map("guest_name")
+  guestEmail  String        @map("guest_email")
+  guestPhone  String?       @map("guest_phone")
+  checkIn     DateTime      @map("check_in")
+  checkOut    DateTime      @map("check_out")
+  totalNights Int           @map("total_nights")
+  totalAmount Decimal       @map("total_amount") @db.Decimal(10, 2)
+  status      BookingStatus @default(PENDING)
+  specialReq  String?       @map("special_requests")
+  room        Room          @relation(fields: [roomId], references: [id])
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  @@map("bookings")
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  roomId     String   @map("room_id")
+  guestName  String   @map("guest_name")
+  rating     Int
+  comment    String
+  stayDate   DateTime @map("stay_date")
+  isVerified Boolean  @default(false) @map("is_verified")
+  room       Room     @relation(fields: [roomId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("reviews")
+}
